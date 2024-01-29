@@ -1,7 +1,7 @@
 require('dotenv').config();
 const { Client, IntentsBitField } = require('discord.js');
-const eventHandler = require('./handlers/eventHandler');
 const mongoose = require('mongoose');
+const { CommandKit } = require('commandkit');
 
 const client = new Client({
   intents: [
@@ -12,12 +12,20 @@ const client = new Client({
   ],
 });
 
+new  CommandKit({
+  client,
+  devGuildIds: ['1077538563282972742'],
+  devUserIds: ['467393849182912526'],
+  eventsPath: `${__dirname}/events`,
+  commandsPath:  `${__dirname}/commands`,
+  bulkRegister: true,
+});
+
 (async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connected to DB');
 
-    eventHandler(client);
   } catch (error) {
     console.log(`error in DB: ${error}`);
   }

@@ -16,14 +16,14 @@ module.exports = {
 
     run: async ({ interaction, handler }) => { 
     const targetUser = interaction.options.getUser("target-user");
-    const reason = interaction.options.getString("reason") || "Důvod nebyl uveden";
+    const reason = interaction.options.getString("reason") || "The reason was not provided";
   
     await interaction.deferReply({ ephemeral: true }); // Marking the initial reply as ephemeral
   
     try {
       await interaction.guild.members.ban(targetUser.id, { reason });
       await interaction.editReply({
-        content: `Uživatel ${targetUser.tag} byl zabanován\nDůvod: ${reason}`,
+        content: `User ${targetUser.tag} Was banned\nReason: ${reason}`,
         ephemeral: true, // Marking the final reply as ephemeral
       });
     } catch (error) {

@@ -1,66 +1,72 @@
-const {} = require('discord.js');
-const Suggestion = require('../../../src/models/Suggestion');
+const Suggestion = require('../../models/Suggestion');
+const {Interaction} = require('discord.js');
 
 /**
+ * 
  * @param {Interaction} interaction 
  * 
  */
+
+
 module.exports = async (interaction) => {
-    if (!interaction.isButton() || !interaction.customId) return;
+  if (!interaction.isButton() || !interaction.customId) return;
 
-    try {
-        const [type, suggestionId, action ] = interaction.customId.split('.');
+  try {
+    const [type, suggestionId, action] = interaction.customId.split('.');
 
-        if(!type || !suggestionId || !action) return;
-        if (type !== 'suggestion') return;
-        
-        await interaction.deferReply({ ephemeral: true });
+    if (!type || !suggestionId || !action) return;
+    if (type !== 'suggestion') return;
 
-        const targetSuggestion = await Suggestion.findOne({ suggestionId });
-        const targetMessage = await interaction.channel.messages.fetch(targetSuggestion.messageId);
-        const targetMessageEmbed = targetMessage.embeds[0];
 
-        if (action === 'approve') {
-            if (!interaction.memberPermissions.has('Administrator')) {
-                await interaction.editReply('You do not have permission to approve suggestions.');
-                return;
-            }
-            targetSuggestion.status = 'approved';
-            targetMessageEmbed.data.color = 0x84e668;
 
-            await targetSuggestion.save();
+    const targetSuggestion = await Suggestion.findOne({ suggestionId });
+    const targetMessage = await interaction.channel.messages.fetch(targetSuggestion.messageId);
+    const targetMessageEmbed = targetMessage.embeds[0];
 
-            interaction.editReply('Suggestion approved');
+    if (action === 'approve') {
+      if (!interaction.memberPermissions.has('Administrator')) {
+        await interaction.editReply('You do not have permission to approve suggestions.');
+        return;
+      }
+      targetSuggestion.status = 'approved';
 
-            targetMessage.edit({
-                embeds: [targetMessageEmbed],
-                components: [targetMessage.components[0]],
-            })
-            returnl
-        }
+      targetMessageEmbed.data.color = 0x84e668;
+      targetMessageEmbed.fields[1].value = '✅ Approved'
 
-        if (action === 'reject') {
-            if (!interaction.memberPermissions.has('Administrator')) {
-                await interaction.editReply('You do not have permission to approve suggestions.');
-                return;
-            }
+      await targetSuggestion.save();
 
-            targetSuggestion.status = 'Rejected';
+      interaction.editReply('Suggestion approved');
 
-            targetMessageEmbed.data.color = 0xff6161;
-            targetMessageEmbed.fields[1].value = '⛔️ Rejected';
-
-            await targetSuggestion.save();
-
-            interaction.editReply('Suggestion rejected!');
-
-            targetMessage.edit({
-                embeds: [targetMessageEmbed],
-                components: [targetMessage.components[0]],
-            })
-            return;
-        }
-    } catch (error) {
-        console.log(`Error in handleSuggestion.js ${error}`);
+      targetMessage.edit({
+        embeds: [targetMessageEmbed],
+        components: [targetMessage.components[0]],
+      });
+      return;
     }
-}
+
+    if (action === 'reject') {
+      if (!interaction.memberPermissions.has('Administrator')) {
+        await interaction.editReply('You do not have permission to approve suggestions.');
+        return;
+      }
+
+      targetSuggestion.status = 'rejected';
+
+      targetMessageEmbed.data.color = 0xff6161;
+      targetMessageEmbed.fields[1].value = '❌ Rejected';
+
+      await targetSuggestion.save();
+
+      interaction.editReply('Suggestion rejected!');
+
+      targetMessage.edit({
+        embeds: [targetMessageEmbed],
+        components: [targetMessage.components[0]],
+      });
+      return;
+    }
+  } catch (error) {
+    console.log(`Error in handleSuggestion.js ${error}`);
+  }
+
+};

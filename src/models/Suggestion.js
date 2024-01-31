@@ -25,7 +25,7 @@ const suggestionSchema = new Schema({
   },
   status: {
     type: String,
-    default: "penging",
+    default: "pending",
   },
   upvotes: {
     type: [String],

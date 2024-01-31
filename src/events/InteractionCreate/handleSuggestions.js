@@ -34,8 +34,6 @@ module.exports = async (interaction) => {
       await targetSuggestion.save();
       interaction.editReply('Suggestion approved');
 
-      console.log(formatResults(targetSuggestion.upvotes, targetSuggestion.downvotes));
-
       targetMessage.edit({
         embeds: [targetMessageEmbed],
         components: [targetMessage.components[0]],
@@ -61,7 +59,6 @@ module.exports = async (interaction) => {
       await targetSuggestion.save();
       interaction.editReply('Suggestion rejected!');
 
-      console.log(formatResults(targetSuggestion.upvotes, targetSuggestion.downvotes));
 
       targetMessage.edit({
         embeds: [targetMessageEmbed],
@@ -72,48 +69,117 @@ module.exports = async (interaction) => {
     }
 
     if (action === 'upvote') {
-      const hasVoted = targetSuggestion.upvotes.includes(interaction.user.id) || targetSuggestion.downvotes.includes(interaction.user.id);
-    
-      // if (hasVoted) {
-      //   await interaction.editReply('You have already casted your vote for this suggestion', { ephemeral: true});
-      //   return;
-      // }
-    
-      targetSuggestion.upvotes.push(interaction.user.id);
-      targetSuggestion.voteCount = targetSuggestion.upvotes.length - targetSuggestion.downvotes.length;
-      await targetSuggestion.save();
-      interaction.editReply('Upvoted suggestion', { ephemeral: true});
-      console.log(`Upvotes: ${targetSuggestion.upvotes.length}`);
-    
-      targetMessageEmbed.fields[2].value = formatResults(targetSuggestion.upvotes, targetSuggestion.downvotes);
-    
-      console.log(formatResults(targetSuggestion.upvotes, targetSuggestion.downvotes));
-    
-      targetMessage.edit({ embeds: [targetMessageEmbed] });
-      return;
-    }
-    
-    if (action === 'downvote') {
-      const hasVoted = targetSuggestion.upvotes.includes(interaction.user.id) || targetSuggestion.downvotes.includes(interaction.user.id);
-    
-      // if (hasVoted) {
-      //   await interaction.editReply('You have already casted your vote for this suggestion', { ephemeral: true});
-      //   return;
-      // }
-    
-      targetSuggestion.downvotes.push(interaction.user.id);
-      targetSuggestion.voteCount = targetSuggestion.upvotes.length - targetSuggestion.downvotes.length;
-      await targetSuggestion.save();
-      interaction.editReply('Downvoted suggestion', { ephemeral: true});
-    
-      targetMessageEmbed.fields[2].value = formatResults(targetSuggestion.upvotes, targetSuggestion.downvotes);
-    
-      console.log(formatResults(targetSuggestion.upvotes, targetSuggestion.downvotes));
-    
-      targetMessage.edit({ embeds: [targetMessageEmbed] });
-      return;
-    }
+  const hasVoted = targetSuggestion.upvotes.includes(interaction.user.id) || targetSuggestion.downvotes.includes(interaction.user.id);
+
+  // if (hasVoted) {
+  //   await interaction.editReply('You have already casted your vote for this suggestion', { ephemeral: true});
+  //   return;
+  // }
+
+  targetSuggestion.upvotes.push(interaction.user.id);
+  targetSuggestion.voteCount = targetSuggestion.upvotes.length - targetSuggestion.downvotes.length;
+  await targetSuggestion.save();
+  interaction.editReply('Upvoted suggestion', { ephemeral: true}); // set the "Upvoted suggestion" message to ephemeral
+  
+
+  targetMessageEmbed.fields[2].value = formatResults(targetSuggestion.upvotes, targetSuggestion.downvotes);
+
+
+  targetMessage.edit({ embeds: [targetMessageEmbed] });
+  return;
+}
+
+if (action === 'downvote') {
+  const hasVoted = targetSuggestion.upvotes.includes(interaction.user.id) || targetSuggestion.downvotes.includes(interaction.user.id);
+
+  // if (hasVoted) {
+  //   await interaction.editReply('You have already casted your vote for this suggestion', { ephemeral: true});
+  //   return;
+  // }
+
+  targetSuggestion.downvotes.push(interaction.user.id);
+  targetSuggestion.voteCount = targetSuggestion.upvotes.length - targetSuggestion.downvotes.length;
+  await targetSuggestion.save();
+  interaction.editReply('Upvoted suggestion', { ephemeral: true}); // set the "Upvoted suggestion" message to ephemeral
+
+  targetMessageEmbed.fields[2].value = formatResults(targetSuggestion.upvotes, targetSuggestion.downvotes);
+
+      
+  targetMessage.edit({ embeds: [targetMessageEmbed] });
+  return;
+}
   } catch (error) {
     console.log(`Error in handleSuggestion.js ${error}`);
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// if (action === 'upvote') {
+//   const hasVoted = targetSuggestion.upvotes.includes(interaction.user.id) || targetSuggestion.downvotes.includes(interaction.user.id);
+
+//   // if (hasVoted) {
+//   //   await interaction.editReply('You have already casted your vote for this suggestion', { ephemeral: true});
+//   //   return;
+//   // }
+
+//   targetSuggestion.upvotes.push(interaction.user.id);
+//   targetSuggestion.voteCount = targetSuggestion.upvotes.length - targetSuggestion.downvotes.length;
+//   await targetSuggestion.save();
+//   interaction.editReply('Upvoted suggestion', { ephemeral: true}); // set the "Upvoted suggestion" message to ephemeral
+  
+
+//   targetMessageEmbed.fields[2].value = formatResults(targetSuggestion.upvotes, targetSuggestion.downvotes);
+
+
+//   targetMessage.edit({ embeds: [targetMessageEmbed] });
+//   return;
+// }
+
+// if (action === 'downvote') {
+//   const hasVoted = targetSuggestion.upvotes.includes(interaction.user.id) || targetSuggestion.downvotes.includes(interaction.user.id);
+
+//   // if (hasVoted) {
+//   //   await interaction.editReply('You have already casted your vote for this suggestion', { ephemeral: true});
+//   //   return;
+//   // }
+
+//   targetSuggestion.downvotes.push(interaction.user.id);
+//   targetSuggestion.voteCount = targetSuggestion.upvotes.length - targetSuggestion.downvotes.length;
+//   await targetSuggestion.save();
+//   interaction.editReply('Upvoted suggestion', { ephemeral: true}); // set the "Upvoted suggestion" message to ephemeral
+
+//   targetMessageEmbed.fields[2].value = formatResults(targetSuggestion.upvotes, targetSuggestion.downvotes);
+
+      
+//   targetMessage.edit({ embeds: [targetMessageEmbed] });
+//   return;
+// }

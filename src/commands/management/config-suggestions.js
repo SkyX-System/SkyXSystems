@@ -45,8 +45,8 @@ module.exports = {
 
   options: {
     userPermissions: ['Administrator'],
-    devOnly: true,
-    testOnly: true,
+    devOnly: false,
+    testOnly: false,
   },
   data: new SlashCommandBuilder()
     .setName('config-suggestions')

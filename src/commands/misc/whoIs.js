@@ -28,14 +28,22 @@ module.exports = {
       HypeSquadOnlineHouse1: 'House of Bravery',
       HypeSquadOnlineHouse2: 'House of Brilliance',
       HypeSquadOnlineHouse3: 'House of Balance',
-      Hypesquad: 'HypeSquad Event Attendee',
+      HypesquadEvents: 'HypeSquad Events Attendee',
       Partner: 'Discord Partner',
       PremiumEarlySupporter: 'Early Nitro Supporter',
       Staff: 'Discord Staff',
       VerifiedBot: 'Verified Bot',
       VerifiedDeveloper: 'Verified Developer',
       ActiveDeveloper: 'Active and Verified Developer',
-    };
+      NitroClassic: 'Nitro Classic',
+      Nitro: 'Nitro',
+      ServerBoosterLevel1: 'Server Booster Level 1',
+      ServerBoosterLevel2: 'Server Booster Level 2',
+      ServerBoosterLevel3: 'Server Booster Level 3',
+      ModeratorProgramAlumni: 'Moderator Program Alumni',
+      EarlySupporter: 'Early Supporter',
+      Quests: 'Quests'
+  };
 
     const embed = new EmbedBuilder()
       .setColor('#00FF0C')

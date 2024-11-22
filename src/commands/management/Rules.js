@@ -73,7 +73,7 @@ module.exports = {
   options: {
     devOnly: false,
     userPermissions: [PermissionFlagsBits.Administrator],
-    deleted: false,
+    deleted: true,
     testServer: false,
   },
 };

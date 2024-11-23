@@ -1,67 +1,109 @@
-const { Interaction } = require('discord.js');
 const Suggestion = require('../../models/Suggestion');
-
-/**
- * @param {Interaction} interaction
- */
+const formatResults = require('../../utils/formatResults');
 
 module.exports = async (interaction) => {
-    if (!interaction.isButton() || !interaction.customId) return;
-try {
+  if (!interaction.isButton() || !interaction.customId) return;
+
+  try {
+    console.log('Interaction started');
+    await interaction.deferReply({ ephemeral: true });
+
     const [type, suggestionId, action] = interaction.customId.split('.');
+    if (!type || !suggestionId || !action || type !== 'suggestion') {
+      return interaction.editReply({ content: 'Invalid interaction.' });
+    }
 
-    if (!type || !suggestionId || !action) return;
-    if (type !== 'suggestion') return;
+    console.log('Fetching suggestion from DB...');
+    const targetSuggestion = await Suggestion.findOne({ suggestionId });
+    if (!targetSuggestion) {
+      return interaction.editReply({ content: 'Suggestion not found.' });
+    }
 
-    await interaction.deferReply({ ephemeral: true});
-    
-    const targetSuggestion = await Suggestion.findOne({suggestionId});
+    console.log('Fetching target message...');
     const targetMessage = await interaction.channel.messages.fetch(targetSuggestion.messageId);
     const targetMessageEmbed = targetMessage.embeds[0];
-    
+
+    if (!targetMessageEmbed) {
+      console.error('Embed not found in target message');
+      return interaction.editReply({ content: 'Embed not found in the target message.' });
+    }
+
+    // Handling 'approve' action
     if (action === 'approve') {
-        if (!interaction.memberPermissions.has('Administrator')) {
-            await interaction.editReply('You do not have permission to approve suggestions.');
-            return;
-        }
+      console.log('Processing approval...');
+      if (!interaction.member.permissions.has('Administrator')) {
+        return interaction.editReply({ content: 'You do not have permission to approve suggestions.' });
+      }
 
-        targetSuggestion.status = 'approved';
+      targetSuggestion.status = 'approved';
+      targetMessageEmbed.setColor(0x84e668).fields[1].value = '✅ Approved';
+      await targetSuggestion.save();
+      await targetMessage.edit({ embeds: [targetMessageEmbed] });
 
-        targetMessageEmbed.data.color = 0x84e660;
-        targetMessageEmbed.fields[1].value = 'Approved';
-
-        await targetSuggestion.save();
-
-        interaction.editReply('Suggestion approved');
-
-        targetMessage.edit({
-            embeds: [targetMessageEmbed],
-            components: [targetMessage.components[0]],
-        });
-        return;
+      return interaction.editReply({ content: 'Suggestion approved.' });
     }
 
+    // Handling 'reject' action
     if (action === 'reject') {
-        if (!interaction.memberPermissions.has('Administrator')) {
-            await interaction.editReply('You do not have permission to reject suggestions.');
-            return;
-        }
-        targetSuggestion.status = 'rejected';
-        targetMessageEmbed.data.color = 0xff6161;
-        targetMessageEmbed.fields[1].value = 'Rejected';
+      console.log('Processing rejection...');
+      if (!interaction.member.permissions.has('Administrator')) {
+        return interaction.editReply({ content: 'You do not have permission to reject suggestions.' });
+      }
 
-        await targetSuggestion.save();
+      targetSuggestion.status = 'rejected';
+      targetMessageEmbed.setColor(0xff6161).fields[1].value = '❌ Rejected';
+      await targetSuggestion.save();
+      await targetMessage.edit({ embeds: [targetMessageEmbed] });
 
-        interaction.editReply('Suggestion rejected');
-
-        targetMessage.edit({
-            embeds: [targetMessageEmbed],
-            components: [targetMessage.components[0]],
-        })
-        return; 
+      return interaction.editReply({ content: 'Suggestion rejected.' });
     }
 
-    } catch (error) {
-        console.log(`Error in handleSuggestion.js ${error}`);
+    // Handling 'upvote' action
+    if (action === 'upvote') {
+      console.log('Processing upvote...');
+      const hasVoted =
+        targetSuggestion.upvotes.includes(interaction.user.id) ||
+        targetSuggestion.downvotes.includes(interaction.user.id);
+
+      if (hasVoted) {
+        return interaction.editReply({ content: 'You have already cast your vote for this suggestion.', ephemeral: true });
+      }
+
+      targetSuggestion.upvotes.push(interaction.user.id);
+      targetSuggestion.voteCount = targetSuggestion.upvotes.length - targetSuggestion.downvotes.length;
+      await targetSuggestion.save();
+
+      targetMessageEmbed.fields[2].value = formatResults(targetSuggestion.upvotes, targetSuggestion.downvotes);
+      await targetMessage.edit({ embeds: [targetMessageEmbed] });
+
+      return interaction.editReply({ content: 'Upvoted suggestion.', ephemeral: true });
     }
-}
+
+    // Handling 'downvote' action
+    if (action === 'downvote') {
+      console.log('Processing downvote...');
+      const hasVoted =
+        targetSuggestion.upvotes.includes(interaction.user.id) ||
+        targetSuggestion.downvotes.includes(interaction.user.id);
+
+      if (hasVoted) {
+        return interaction.editReply({ content: 'You have already cast your vote for this suggestion.', ephemeral: true });
+      }
+
+      targetSuggestion.downvotes.push(interaction.user.id);
+      targetSuggestion.voteCount = targetSuggestion.upvotes.length - targetSuggestion.downvotes.length;
+      await targetSuggestion.save();
+
+      targetMessageEmbed.fields[2].value = formatResults(targetSuggestion.upvotes, targetSuggestion.downvotes);
+      await targetMessage.edit({ embeds: [targetMessageEmbed] });
+
+      return interaction.editReply({ content: 'Downvoted suggestion.', ephemeral: true });
+    }
+
+  } catch (error) {
+    console.error('Error in interaction handler:', error);
+    await interaction.editReply({ content: 'An error occurred while processing the interaction.' }).catch((err) => {
+      console.error('Failed to reply:', err);
+    });
+  }
+};

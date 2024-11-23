@@ -38,9 +38,9 @@ module.exports = {
   },
 
   options: {
-    devOnly: false,
+    devOnly: true,
     userPermissions: ['ManageRoles'],
     botPermissions: ['Administrator'],
-    deleted: false,
+    deleted: true,
   },
 };

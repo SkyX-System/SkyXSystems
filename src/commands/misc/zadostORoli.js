@@ -38,7 +38,7 @@ module.exports = {
 
       // Zkontrolovat, zda role, kterou se snažíme přidat, má nižší prioritu než role bota
       if (role.position >= botMember.roles.highest.position) {
-        return await interaction.reply({ content: 'Nemohu přidat tuto roli, protože má vyšší nebo stejnou prioritu jako moje nejvyšší role.', ephemeral: true });
+        return await interaction.reply({ content: 'Nelze přidat tuto roli, protože má vyšší nebo stejnou prioritu jako moje nejvyšší role.', ephemeral: true });
       }
 
       const embed = new EmbedBuilder()

@@ -1,5 +1,5 @@
 const { Interaction } = require('discord.js');
-const Suggestion = require('../../models/GuildConfiguration');
+const Suggestion = require('../../models/Suggestion');
 const formatResults = require('../../utils/formatResults');
 
 /**
@@ -17,10 +17,28 @@ module.exports = async (interaction) => {
 
     await interaction.deferReply({ ephemeral: true });
 
+    // Hledání návrhu v databázi
     const targetSuggestion = await Suggestion.findOne({ suggestionId });
+
+    // Pokud návrh není nalezen
+    if (!targetSuggestion) {
+      await interaction.editReply('Suggestion not found.');
+      return;
+    }
+
+    // Pokud chybí messageId
+    if (!targetSuggestion.messageId) {
+      await interaction.editReply('Suggestion message ID is missing.');
+      return;
+    }
+
+    // Získání zprávy podle messageId
     const targetMessage = await interaction.channel.messages.fetch(targetSuggestion.messageId);
+
+    // Získání embedu zprávy
     const targetMessageEmbed = targetMessage.embeds[0];
 
+    // Akce pro schválení návrhu
     if (action === 'approve') {
       if (!interaction.memberPermissions.has('Administrator')) {
         await interaction.editReply('You do not have permission to approve suggestions.');
@@ -28,22 +46,20 @@ module.exports = async (interaction) => {
       }
 
       targetSuggestion.status = 'approved';
-
-      targetMessageEmbed.data.color = 0x84e660;
+      targetMessageEmbed.data.color = 0x84e660; // Zelená barva
       targetMessageEmbed.fields[1].value = '✅ Approved';
 
       await targetSuggestion.save();
-
-      interaction.editReply('Suggestion approved!');
+      await interaction.editReply('Suggestion approved!');
 
       targetMessage.edit({
         embeds: [targetMessageEmbed],
         components: [targetMessage.components[0]],
       });
-
       return;
     }
 
+    // Akce pro zamítnutí návrhu
     if (action === 'reject') {
       if (!interaction.memberPermissions.has('Administrator')) {
         await interaction.editReply('You do not have permission to reject suggestions.');
@@ -51,22 +67,20 @@ module.exports = async (interaction) => {
       }
 
       targetSuggestion.status = 'rejected';
-
-      targetMessageEmbed.data.color = 0xff6161;
+      targetMessageEmbed.data.color = 0xff6161; // Červená barva
       targetMessageEmbed.fields[1].value = '❌ Rejected';
 
       await targetSuggestion.save();
-
-      interaction.editReply('Suggestion rejected!');
+      await interaction.editReply('Suggestion rejected!');
 
       targetMessage.edit({
         embeds: [targetMessageEmbed],
         components: [targetMessage.components[0]],
       });
-
       return;
     }
 
+    // Akce pro hlasování "upvote"
     if (action === 'upvote') {
       const hasVoted =
         targetSuggestion.upvotes.includes(interaction.user.id) ||
@@ -78,7 +92,6 @@ module.exports = async (interaction) => {
       }
 
       targetSuggestion.upvotes.push(interaction.user.id);
-
       await targetSuggestion.save();
 
       interaction.editReply('Upvoted suggestion!');
@@ -91,10 +104,10 @@ module.exports = async (interaction) => {
       targetMessage.edit({
         embeds: [targetMessageEmbed],
       });
-
       return;
     }
 
+    // Akce pro hlasování "downvote"
     if (action === 'downvote') {
       const hasVoted =
         targetSuggestion.upvotes.includes(interaction.user.id) ||
@@ -106,7 +119,6 @@ module.exports = async (interaction) => {
       }
 
       targetSuggestion.downvotes.push(interaction.user.id);
-
       await targetSuggestion.save();
 
       interaction.editReply('Downvoted suggestion!');
@@ -119,10 +131,10 @@ module.exports = async (interaction) => {
       targetMessage.edit({
         embeds: [targetMessageEmbed],
       });
-
       return;
     }
   } catch (error) {
-    console.log(`Error in handleSuggestion.js ${error}`);
+    console.log(`Error in handleSuggestion.js: ${error}`);
+    await interaction.editReply('An error occurred while processing your request.');
   }
 };

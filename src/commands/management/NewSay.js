@@ -13,7 +13,7 @@ const {
       .setName("say")
       .setDescription("Says something by the bot")
       .setDMPermission(false)
-      .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
+      .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
       .addChannelOption((options) =>
         options
           .setName("channel")

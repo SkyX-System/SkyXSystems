@@ -38,6 +38,18 @@ module.exports = async (interaction) => {
     // Získání embedu zprávy
     const targetMessageEmbed = targetMessage.embeds[0];
 
+    // Send private message function
+    const sendPrivateMessage = async (authorId, status, suggestionContent) => {
+      const author = await interaction.client.users.fetch(authorId);
+      if (author) {
+        const message = status === 'approved' 
+          ? `Your suggestion has been approved! 🎉\n\nSuggestion content:\n${suggestionContent}`
+          : `Your suggestion has been rejected. 😞\n\nSuggestion content:\n${suggestionContent}`;
+
+        await author.send(message);
+      }
+    };
+
     // Akce pro schválení návrhu
     if (action === 'approve') {
       if (!interaction.memberPermissions.has('Administrator')) {
@@ -50,6 +62,14 @@ module.exports = async (interaction) => {
       targetMessageEmbed.fields[1].value = '✅ Approved';
 
       await targetSuggestion.save();
+      
+      // Send private message only once
+      const suggestionContent = targetSuggestion.content.length > 100
+        ? targetSuggestion.content.substring(0, 100) + '...' // Provide a snippet for long content
+        : targetSuggestion.content;
+
+      await sendPrivateMessage(targetSuggestion.authorId, 'approved', suggestionContent);
+
       await interaction.editReply('Suggestion approved!');
 
       targetMessage.edit({
@@ -71,6 +91,14 @@ module.exports = async (interaction) => {
       targetMessageEmbed.fields[1].value = '❌ Rejected';
 
       await targetSuggestion.save();
+      
+      // Send private message only once
+      const suggestionContent = targetSuggestion.content.length > 100
+        ? targetSuggestion.content.substring(0, 100) + '...' // Provide a snippet for long content
+        : targetSuggestion.content;
+
+      await sendPrivateMessage(targetSuggestion.authorId, 'rejected', suggestionContent);
+
       await interaction.editReply('Suggestion rejected!');
 
       targetMessage.edit({

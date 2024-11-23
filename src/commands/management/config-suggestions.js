@@ -2,55 +2,60 @@ const { SlashCommandBuilder, ChannelType, ChatInputCommandInteraction } = requir
 const GuildConfiguration = require('../../models/GuildConfiguration');
 
 module.exports = {
-    /**
-     * 
-     * @param {Object} param0
-     * @param {ChatInputCommandInteraction} param0.interaction
-     */
-    run: async ({ interaction })  => {
-        let guildConfiguration = await GuildConfiguration.findOne({ guildId: interaction.guildId });
-        if (!guildConfiguration) {
-          guildConfiguration = new GuildConfiguration ({ guildId: interaction.guildId });
-        };
-        const subcommand = interaction.options.getSubcommand();
-        if (subcommand === 'add') {
-            const channel = interaction.options.getChannel('channel');
-          
-        if (guildConfiguration.suggestionChannelIds.includes(channel.id)) {
-             await interaction.reply(`${channel} is already a suggestions channel.`);
-            return;
-        }
-          
-        guildConfiguration.suggestionChannelIds.push(channel.id);
-            await guildConfiguration.save();
-            await interaction.reply(`Added ${channel} to suggestion channels.`);
-            return;
-        }
-          
-        if (subcommand === 'remove') {
-        const channel = interaction.options.getChannel('channel');
-          
-        if (!guildConfiguration.suggestionChannelIds.includes(channel.id)) {
-            await interaction.reply(`${channel} is not a suggestion channel.`);
-            return;
-        }
-          
-        const index = guildConfiguration.suggestionChannelIds.indexOf(channel.id);
-            guildConfiguration.suggestionChannelIds.splice(index, 1);
-            await guildConfiguration.save();
-            await interaction.reply(`Removed ${channel} from suggestion channels.`);
-            return;
-        }
-    },
+  /**
+   *
+   * @param {Object} param0
+   * @param {ChatInputCommandInteraction} param0.interaction
+   */
+  run: async ({ interaction }) => {
+    let guildConfiguration = await GuildConfiguration.findOne({ guildId: interaction.guildId });
+
+    if (!guildConfiguration) {
+      guildConfiguration = new GuildConfiguration({ guildId: interaction.guildId });
+    }
+
+    const subcommand = interaction.options.getSubcommand();
+
+    if (subcommand === 'add') {
+      const channel = interaction.options.getChannel('channel');
+
+      if (guildConfiguration.suggestionChannelIds.includes(channel.id)) {
+        await interaction.reply(`${channel} is already a suggestions channel.`);
+        return;
+      }
+
+      guildConfiguration.suggestionChannelIds.push(channel.id);
+      await guildConfiguration.save();
+
+      await interaction.reply(`Added ${channel} to suggestion channels.`);
+      return;
+    }
+
+    if (subcommand === 'remove') {
+      const channel = interaction.options.getChannel('channel');
+
+      if (!guildConfiguration.suggestionChannelIds.includes(channel.id)) {
+        await interaction.reply(`${channel} is not a suggestion channel.`);
+        return;
+      }
+
+      guildConfiguration.suggestionChannelIds = guildConfiguration.suggestionChannelIds.filter(
+        (id) => id !== channel.id
+      );
+      await guildConfiguration.save();
+
+      await interaction.reply(`Removed ${channel} from suggestion channels.`);
+      return;
+    }
+  },
 
   options: {
     userPermissions: ['Administrator'],
-    devOnly: false,
-    testOnly: false,
   },
+
   data: new SlashCommandBuilder()
     .setName('config-suggestions')
-    .setDescription('Configure suggestions.')
+    .setDescription('Configure suggstions.')
     .setDMPermission(false)
     .addSubcommand((subcommand) =>
       subcommand
